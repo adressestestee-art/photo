@@ -1,0 +1,11 @@
+<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+<script>
+emailjs.init("IoSfbtGz4KSL_5_9E");
+
+emailjs.send("service_8cs0gml", "template_hgvdx1g", {
+  to_email: "adressestestee@gmail.com",
+  message: "Test simple sans photo"
+})
+.then(() => alert("Mail envoyé !"))
+.catch(err => alert("Erreur : " + err));
+</script>
